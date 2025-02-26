@@ -1,8 +1,12 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
 flask==3.0.2
 flask-sock==0.7.0
-opencv-python-headless==4.9.0.80  # Use headless version for servers
+opencv-python-headless==4.9.0.80
+numpy==1.26.4
+Werkzeug==3.0.1
+gunicorn==21.2.0
+simple-websocket==1.0.0
+cmake==3.28.1
+dlib @ https://github.com/sachadee/Dlib/raw/main/dlib-19.24.2-cp311-cp311-linux_x86_64.whl
 face-recognition==1.3.0
 face-recognition-models==0.3.0
-numpy==1.26.4
-simple-websocket==1.0.0
-Werkzeug==3.0.1
