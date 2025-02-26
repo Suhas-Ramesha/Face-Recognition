@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Stream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom animations and styles */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 2s infinite;
+        }
+
+        .face-card {
+            transition: all 0.3s ease;
+        }
+
+        .face-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .video-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .video-container:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .user-card-matched {
+            animation: highlight 2s infinite;
+        }
+
+        @keyframes highlight {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        .match-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Animated Header Section -->
+        <header class="text-center mb-12 animate-fade-in">
+            <h1 class="text-5xl font-bold text-gray-800 mb-3 hover:text-indigo-600 transition-colors duration-300">
+                Face Recognition System
+            </h1>
+            <p class="text-gray-600 text-lg">Real-time face detection and recognition</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Video Feed Section -->
+            <div class="lg:col-span-2 animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="video-container bg-white p-4">
+                    <div class="relative">
+                        <img src="{{ url_for('video_feed') }}" class="w-full rounded-lg">
+                        <!-- Match Percentage Overlay -->
+                        <div id="matchOverlay" class="absolute top-4 left-4 bg-black/70 rounded-xl p-4 backdrop-blur-sm">
+                            <div class="text-white mb-2">Match Confidence</div>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-32 h-32">
+                                    <canvas id="confidenceChart"></canvas>
+                                </div>
+                                <div class="text-3xl font-bold text-white">
+                                    <span id="confidenceValue">0</span>%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Known Faces Section -->
+            <div class="lg:col-span-1 animate-fade-in" style="animation-delay: 0.4s;">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Known Faces
+                    </h2>
+                    <div id="faces-container" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                        {% for face in known_faces %}
+                        <div id="user-card-{{ face.split('.')[0] }}" 
+                             class="face-card flex flex-col space-y-2 p-4 bg-gray-50 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50"
+                             data-match="0">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                                    <img src="{{ url_for('static', filename='known_faces/' + face) }}" 
+                                         alt="{{ face }}" 
+                                         class="w-full h-full object-cover transform transition-transform hover:scale-110">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-gray-800 font-semibold text-lg">{{ face.split('.')[0] }}</p>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div id="match-percentage-{{ face.split('.')[0] }}" 
+                                                 class="match-bar bg-indigo-600 h-2.5 rounded-full" 
+                                                 style="width: 0%">
+                                            </div>
+                                        </div>
+                                        <span id="match-value-{{ face.split('.')[0] }}" 
+                                              class="text-sm text-gray-600 min-w-[3rem]">
+                                            0%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="mt-8 text-center animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                System Active
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add intersection observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.animate-fade-in').forEach((el) => observer.observe(el));
+
+        // Initialize the gauge chart
+        const ctx = document.getElementById('confidenceChart').getContext('2d');
+        const confidenceChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 255, 255, 0.1)'
+                    ],
+                    borderWidth: 0,
+                    circumference: 180,
+                    rotation: 270,
+                }]
+            },
+            options: {
+                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                }
+            }
+        });
+
+        // Function to update the confidence display
+        function updateConfidence(confidence) {
+            // Adjust confidence to 100 if it's above 55%
+            const displayConfidence = confidence > 55 ? 100 : confidence;
+            
+            // Update chart
+            confidenceChart.data.datasets[0].data[0] = displayConfidence;
+            confidenceChart.data.datasets[0].data[1] = 100 - displayConfidence;
+            confidenceChart.update();
+
+            // Update text
+            document.getElementById('confidenceValue').textContent = Math.round(displayConfidence);
+
+            // Update color based on confidence
+            const color = displayConfidence > 55 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(54, 162, 235, 0.8)';
+            confidenceChart.data.datasets[0].backgroundColor[0] = color;
+            confidenceChart.update();
+        }
+
+        let lastMatchedUser = null;
+
+        function updateMatchPercentages(matches) {
+            // Reset all cards first
+            document.querySelectorAll('.face-card').forEach(card => {
+                card.classList.remove('user-card-matched');
+                // Store current match value in data attribute
+                const username = card.id.replace('user-card-', '');
+                const matchValue = matches[username] || 0;
+                card.dataset.match = matchValue;
+            });
+
+            // Update each user's match percentage
+            Object.entries(matches).forEach(([username, confidence]) => {
+                const progressBar = document.getElementById(`match-percentage-${username}`);
+                const valueText = document.getElementById(`match-value-${username}`);
+                const userCard = document.getElementById(`user-card-${username}`);
+
+                if (progressBar && valueText) {
+                    // Adjust confidence to 100 if it's above 55%
+                    const displayConfidence = confidence > 55 ? 100 : confidence;
+                    
+                    // Update progress bar
+                    progressBar.style.width = `${displayConfidence}%`;
+                    valueText.textContent = `${Math.round(displayConfidence)}%`;
+
+                    // Highlight the card if confidence is above 55%
+                    if (confidence > 55) {
+                        userCard.classList.add('user-card-matched');
+                        lastMatchedUser = username;
+                    }
+
+                    // Update progress bar color based on confidence
+                    if (displayConfidence > 55) {
+                        progressBar.classList.remove('bg-indigo-600');
+                        progressBar.classList.add('bg-green-600');
+                    } else {
+                        progressBar.classList.remove('bg-green-600');
+                        progressBar.classList.add('bg-indigo-600');
+                    }
+                }
+            });
+
+            // Sort cards by match percentage
+            const container = document.getElementById('faces-container');
+            const cards = Array.from(container.children);
+            
+            cards.sort((a, b) => {
+                return parseFloat(b.dataset.match) - parseFloat(a.dataset.match);
+            });
+
+            // Reorder the cards with animation
+            cards.forEach(card => {
+                card.style.transition = 'transform 0.3s ease-out';
+                container.appendChild(card);
+            });
+        }
+
+        // WebSocket connection with retry mechanism
+        function connectWebSocket() {
+            const socket = new WebSocket(`ws://${window.location.host}/ws`);
+            
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.matches) {
+                    updateMatchPercentages(data.matches);
+                }
+            };
+
+            socket.onclose = function() {
+                console.log('WebSocket closed, retrying in 1 second...');
+                setTimeout(connectWebSocket, 1000);
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Initialize WebSocket connection
+        connectWebSocket();
+
+        // Simulate confidence updates for testing (remove in production)
+        setInterval(() => {
+            const randomConfidence = Math.random() * 100;
+            updateConfidence(randomConfidence);
+        }, 2000);
+    </script>
+</body>
+</html>

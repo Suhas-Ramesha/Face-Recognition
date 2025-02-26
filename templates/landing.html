@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition System - Welcome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); opacity: 1; }
+            80%, 100% { opacity: 0; }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        .cyberpunk-grid {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(0, 0, 0, 0.5) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center center;
+        }
+
+        .glow-effect {
+            position: relative;
+        }
+
+        .glow-effect::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff0066, #6600ff, #00ffcc);
+            border-radius: 28px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .glow-effect:hover::before {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-black min-h-screen overflow-hidden">
+    <!-- Background Grid -->
+    <div class="cyberpunk-grid fixed inset-0 opacity-20"></div>
+
+    <!-- Animated Background Circles -->
+    <div class="fixed inset-0 flex items-center justify-center">
+        <div class="absolute w-[800px] h-[800px] bg-blue-500/10 rounded-full pulse-ring"></div>
+        <div class="absolute w-[800px] h-[800px] bg-purple-500/10 rounded-full pulse-ring" style="animation-delay: -1s;"></div>
+        <div class="absolute w-[800px] h-[800px] bg-teal-500/10 rounded-full pulse-ring" style="animation-delay: -2s;"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative min-h-screen flex flex-col items-center justify-center px-4">
+        <!-- Floating Robot/AI Icon -->
+        <div class="animate-float mb-8">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            </svg>
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-5xl md:text-7xl font-bold text-white mb-4 text-center">
+            Face Recognition
+            <span class="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+                AI System
+            </span>
+        </h1>
+
+        <!-- Description -->
+        <p class="text-gray-400 text-xl mb-12 text-center max-w-2xl">
+            Experience the future of security with our advanced facial recognition system. 
+            Powered by cutting-edge AI technology.
+        </p>
+
+        <!-- Start Button -->
+        <a href="{{ url_for('index') }}" class="group relative">
+            <div class="glow-effect bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-8 rounded-3xl 
+                        transform hover:scale-105 transition-all duration-300 hover:shadow-[0_0_30px_rgba(124,58,237,0.5)]">
+                <span class="flex items-center space-x-2">
+                    <span class="text-xl">Start Recognition</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" 
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </span>
+            </div>
+        </a>
+
+        <!-- Features -->
+        <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
+            <div class="bg-gray-900/50 p-6 rounded-xl backdrop-blur-sm hover:bg-gray-900/70 transition-all duration-300">
+                <div class="text-blue-400 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <h3 class="text-white text-xl font-bold mb-2">Secure Access</h3>
+                <p class="text-gray-400">Advanced security protocols ensuring safe and reliable face recognition.</p>
+            </div>
+
+            <div class="bg-gray-900/50 p-6 rounded-xl backdrop-blur-sm hover:bg-gray-900/70 transition-all duration-300">
+                <div class="text-purple-400 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="text-white text-xl font-bold mb-2">Real-time Processing</h3>
+                <p class="text-gray-400">Instant face detection and recognition with minimal latency.</p>
+            </div>
+
+            <div class="bg-gray-900/50 p-6 rounded-xl backdrop-blur-sm hover:bg-gray-900/70 transition-all duration-300">
+                <div class="text-teal-400 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <h3 class="text-white text-xl font-bold mb-2">Easy Integration</h3>
+                <p class="text-gray-400">Seamlessly integrates with existing security systems.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

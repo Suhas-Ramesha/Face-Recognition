@@ -1,165 +1,162 @@
-import face_recognition
+from flask import Flask, render_template, Response
+from flask_sock import Sock
 import cv2
+import face_recognition
 import numpy as np
 import os
-import threading
-import queue
-import time
-import pickle
+import json
+from collections import defaultdict
 
-# Step 1: Encode the known faces with caching
-def load_known_faces(directory):
-    known_face_encodings = []
-    known_face_names = []
-    print("Loading encodings for faces...")
+app = Flask(__name__)
+sock = Sock(app)
 
-    for filename in os.listdir(directory):
-        if filename.lower().endswith((".jpg", ".png")):
-            image_path = os.path.join(directory, filename)
-            name, _ = os.path.splitext(filename)
-            pkl_path = os.path.join(directory, f"{name}.pkl")
+# Store WebSocket clients
+clients = set()
 
-            if os.path.exists(pkl_path):
-                # Load encoding from pickle file
-                try:
-                    with open(pkl_path, 'rb') as pkl_file:
-                        encoding = pickle.load(pkl_file)
-                        known_face_encodings.append(encoding)
-                        known_face_names.append(name)
-                        print(f"Loaded encoding from {pkl_path}")
-                except Exception as e:
-                    print(f"Error loading {pkl_path}: {e}")
-                    # If loading fails, proceed to generate encoding
-            else:
-                # Generate encoding and save to pickle
-                try:
-                    image = face_recognition.load_image_file(image_path)
-                    face_encodings = face_recognition.face_encodings(image)
-                    if face_encodings:
-                        encoding = face_encodings[0]
-                        known_face_encodings.append(encoding)
-                        known_face_names.append(name)
-                        print(f"Generated and saved encoding for {image_path}")
-
-                        # Save the encoding to a pickle file
-                        with open(pkl_path, 'wb') as pkl_file:
-                            pickle.dump(encoding, pkl_file)
-                    else:
-                        print(f"No faces found in {image_path}. Skipping.")
-                except Exception as e:
-                    print(f"Error processing {image_path}: {e}")
-
-    # Convert to NumPy array for faster computations
-    known_face_encodings = np.array(known_face_encodings)
-    return known_face_encodings, known_face_names
-
-# Thread class for video capture
-class VideoCaptureThread(threading.Thread):
-    def __init__(self, src=0, width=640, height=480, queue_size=2):
-        super().__init__()
-        self.capture = cv2.VideoCapture(src, cv2.CAP_DSHOW)
-        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.capture.set(cv2.CAP_PROP_FPS, 30)
-        self.queue = queue.Queue(maxsize=queue_size)
-        self.stopped = False
-
-    def run(self):
-        while not self.stopped:
-            if not self.queue.full():
-                ret, frame = self.capture.read()
-                if not ret:
-                    self.stop()
-                    break
-                self.queue.put(frame)
-            else:
-                time.sleep(0.015)  # Prevent busy waiting
-
-    def read(self):
-        return self.queue.get()
-
-    def more(self):
-        return not self.queue.empty()
-
-    def stop(self):
-        self.stopped = True
-        self.capture.release()
-
-# Main function to use webcam
-if __name__ == "__main__":
-    # Load known faces
-    known_faces_dir = "known_faces"
-    known_face_encodings, known_face_names = load_known_faces(known_faces_dir)
-
-    # Initialize video capture thread
-    print("Initializing Camera...")
-    video_capture = VideoCaptureThread(src=0, width=720, height=720, queue_size=2)
-    video_capture.start()
-    print("Started Video Thread...")
-
-    process_every_n_frames = 2
+def generate_frames():
+    camera = cv2.VideoCapture(0)
+    
+    # Set lower resolution for faster processing
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    
+    # Process every other frame to reduce CPU usage
     frame_count = 0
-
-    # Initialize variables for multi-threading
-    face_locations = []
-    face_encodings = []
-    face_names = []
+    
+    if not camera.isOpened():
+        print("Error: Could not open camera")
+        return
 
     while True:
-        if video_capture.more():
-            frame = video_capture.read()
-            frame_count += 1
-
-            # Only process every n-th frame to save time
-            if frame_count % process_every_n_frames == 0:
-                # Resize frame to 1/2 size for faster processing
-                small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
-
-                # Convert the image from BGR (OpenCV) to RGB (face_recognition)
-                rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-
-                # Detect all faces and their encodings in the current frame
-                face_locations = face_recognition.face_locations(rgb_small_frame, model='hog')
-                face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
-                face_names = []
-                for face_encoding in face_encodings:
-                    # Compare the detected face with known faces
-                    distances = np.linalg.norm(known_face_encodings - face_encoding, axis=1)
-                    best_match_index = np.argmin(distances)
-
-                    name = "Unknown"
-                    confidence = 1.0  # Default confidence for unknown faces
-
-                    if distances[best_match_index] <= 0.6:  # 0.6 is a common threshold
+        success, frame = camera.read()
+        if not success:
+            print("Error: Could not read frame")
+            break
+            
+        frame_count += 1
+        if frame_count % 2 != 0:  # Process every other frame
+            continue
+            
+        # Process frame for face recognition
+        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+        
+        # Find all face locations in the current frame
+        face_locations = face_recognition.face_locations(rgb_small_frame, model="hog")  # Use HOG for faster processing
+        
+        current_matches = defaultdict(float)
+        
+        if face_locations:
+            face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations, num_jitters=1)
+            
+            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+                if len(known_face_encodings) > 0:
+                    # Use numpy for faster distance calculation
+                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                    
+                    # Update matches dictionary
+                    for idx, distance in enumerate(face_distances):
+                        name = known_face_names[idx]
+                        confidence = (1 - distance) * 100
+                        current_matches[name] = max(current_matches[name], confidence)
+                    
+                    best_match_index = np.argmin(face_distances)
+                    if face_distances[best_match_index] < 0.45:
                         name = known_face_names[best_match_index]
-                        confidence = (1 - distances[best_match_index]) * 100  # Convert to percentage
+                        # Scale back the coordinates
+                        top *= 4
+                        right *= 4
+                        bottom *= 4
+                        left *= 4
+                        
+                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+                        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 255, 0), cv2.FILLED)
+                        cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            
+            if current_matches:
+                try:
+                    broadcast_matches(current_matches)
+                except Exception as e:
+                    print(f"Error broadcasting matches: {e}")
+        
+        ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-                    face_names.append((name, confidence))
+    camera.release()
 
-            # Display the results
-            for (top, right, bottom, left), (name, confidence) in zip(face_locations, face_names):
-                # Scale back up face locations since the frame we detected in was scaled to 1/2 size
-                top *= 2
-                right *= 2
-                bottom *= 2
-                left *= 2
+def broadcast_matches(matches):
+    """Broadcast matches to all connected clients"""
+    # Convert numpy float32 to Python float for JSON serialization
+    matches_json = {name: float(confidence) for name, confidence in matches.items()}
+    message = json.dumps({"matches": matches_json})
+    
+    disconnected = set()
+    
+    for client in clients:
+        try:
+            client.send(message)
+        except Exception as e:
+            print(f"Error sending to client: {e}")
+            disconnected.add(client)
+    
+    for client in disconnected:
+        clients.remove(client)
 
-                # Draw a box around the face
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+@sock.route('/ws')
+def websocket(ws):
+    clients.add(ws)
+    try:
+        while True:
+            data = ws.receive()
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        clients.remove(ws)
 
-                # Draw the label with the name and confidence score
-                label = f"{name} ({confidence:.0f}%)"
-                cv2.putText(frame, label, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+@app.route('/')
+def landing():
+    return render_template('landing.html')
 
-            # Display the resulting frame
-            cv2.imshow("Video", frame)
+@app.route('/recognition')
+def index():
+    known_faces = [f for f in os.listdir('static/known_faces') if f.endswith(('.jpg', '.jpeg', '.png'))]
+    return render_template('index.html', known_faces=known_faces)
 
-            # Break the loop on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    # Stop the video capture thread and close windows
-    video_capture.stop()
-    video_capture.join()
-    cv2.destroyAllWindows()
+if __name__ == '__main__':
+    # Load known faces on startup
+    known_face_encodings = []
+    known_face_names = []
+    
+    print("Loading known faces...")
+    
+    # Load known faces from the static/known_faces directory
+    known_faces_dir = "static/known_faces"
+    for filename in os.listdir(known_faces_dir):
+        if filename.endswith((".jpg", ".jpeg", ".png")):
+            try:
+                # Load the image
+                image_path = os.path.join(known_faces_dir, filename)
+                face_image = face_recognition.load_image_file(image_path)
+                
+                # Get face encoding
+                face_encodings = face_recognition.face_encodings(face_image)
+                if face_encodings:
+                    known_face_encodings.append(face_encodings[0])
+                    # Use filename without extension as the person's name
+                    known_face_names.append(os.path.splitext(filename)[0])
+                    print(f"Loaded face: {filename}")
+                else:
+                    print(f"No face found in {filename}")
+            except Exception as e:
+                print(f"Error loading face {filename}: {e}")
+    
+    print(f"Successfully loaded {len(known_face_encodings)} faces")
+    
+    # Run the Flask app
+    app.run(debug=True, threaded=True, host='0.0.0.0', port=5000)
