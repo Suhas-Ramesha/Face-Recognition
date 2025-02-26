@@ -6,4 +6,12 @@ services:
     startCommand: gunicorn main:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0 
+        value: 3.11.0
+    buildConfig:
+      packages:
+        - build-essential
+        - cmake
+        - libopenblas-dev
+        - liblapack-dev
+        - libx11-dev
+        - libgtk-3-dev 
