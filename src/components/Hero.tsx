@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
-    <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-gradient-radial from-blue-50 to-purple-50 px-4">
+    <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-black px-4">
       <div className="text-blue-600 text-5xl mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -23,11 +23,11 @@ const Hero = () => {
           <path d="M17 17h.01" />
         </svg>
       </div>
-      <h1 className="text-center text-4xl md:text-5xl font-bold mb-3">
+      <h1 className="text-center text-4xl md:text-5xl font-bold mb-3 text-white">
         Face Recognition
         <span className="block text-blue-600">AI System</span>
       </h1>
-      <p className="text-center text-gray-600 max-w-md mb-10">
+      <p className="text-center text-gray-400 max-w-md mb-10">
         Experience the future of security with our advanced facial recognition
         system. Powered by cutting-edge AI technology.
       </p>
@@ -113,10 +113,10 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
   return (
-    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100">
+    <div className="bg-gray-900/80 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-800">
       <div className="mb-4">{icon}</div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <h3 className="text-lg font-semibold mb-2 text-white">{title}</h3>
+      <p className="text-gray-400 text-sm">{description}</p>
     </div>
   );
 };
