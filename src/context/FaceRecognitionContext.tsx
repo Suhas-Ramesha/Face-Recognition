@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Person } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { Database } from '@/integrations/supabase/types';
 
 type FaceRecognitionContextType = {
   knownFaces: Person[];
@@ -79,12 +80,11 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
       const randomIndex = Math.floor(Math.random() * knownFaces.length);
       const selectedFace = knownFaces[randomIndex];
       
-      // Generate a random match percentage (45-100 for detected, 2-3 for low matches)
-      const isHighMatch = Math.random() > 0.5;
-      const matchPercentage = isHighMatch ? Math.floor(Math.random() * 51) + 50 : Math.floor(Math.random() * 2) + 2;
+      // Generate a random match percentage (1-100 for raw values)
+      const rawMatchPercentage = Math.floor(Math.random() * 100) + 1;
       
-      // Display match as 100% if above 50%
-      const displayedPercentage = matchPercentage > 50 ? 100 : matchPercentage;
+      // Apply the new rule: 100% if 30% or more, 1-2% otherwise
+      const displayedPercentage = rawMatchPercentage >= 30 ? 100 : Math.floor(Math.random() * 2) + 1;
       
       const updatedFace = { ...selectedFace, matchPercentage: displayedPercentage };
       
@@ -93,7 +93,7 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
         prev.map((face) => 
           face.id === updatedFace.id 
             ? updatedFace 
-            : { ...face, matchPercentage: 0 }
+            : { ...face, matchPercentage: Math.floor(Math.random() * 2) + 1 }
         )
       );
       

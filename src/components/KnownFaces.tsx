@@ -31,9 +31,9 @@ const KnownFaces = () => {
           {sortedFaces.map((person) => (
             <div 
               key={person.id}
-              className={`face-card ${person.id === detectedFace?.id ? 'face-card-active' : ''}`}
+              className={`face-card ${person.id === detectedFace?.id ? 'face-card-active' : ''} flex items-center p-3 rounded-lg border ${person.matchPercentage >= 100 ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
             >
-              <div className="w-12 h-12 rounded-full overflow-hidden">
+              <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
                 <img 
                   src={person.image} 
                   alt={person.name} 
@@ -43,11 +43,13 @@ const KnownFaces = () => {
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-medium">{person.name}</span>
-                  <span className="text-sm text-gray-500">{person.matchPercentage}%</span>
+                  <span className={`text-sm ${person.matchPercentage >= 100 ? 'text-green-600 font-bold' : 'text-gray-500'}`}>
+                    {person.matchPercentage}%
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
-                    className="match-percentage" 
+                    className={`${person.matchPercentage >= 100 ? 'bg-green-500' : 'bg-blue-500'} h-2 rounded-full`} 
                     style={{ width: `${person.matchPercentage}%` }}
                   ></div>
                 </div>
