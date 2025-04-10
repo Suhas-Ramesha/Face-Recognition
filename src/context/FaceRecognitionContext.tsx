@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Person } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 type FaceRecognitionContextType = {
   knownFaces: Person[];
@@ -9,52 +11,61 @@ type FaceRecognitionContextType = {
   startRecognition: () => void;
   stopRecognition: () => void;
   addKnownFace: (face: Person) => void;
+  refreshKnownFaces: () => Promise<void>;
+  isLoading: boolean;
 };
 
 const FaceRecognitionContext = createContext<FaceRecognitionContextType | undefined>(undefined);
 
-// Sample data
-const sampleData: Person[] = [
-  {
-    id: '1',
-    name: 'Tim',
-    image: '/lovable-uploads/f38c86bc-1cfd-4b2d-bcf9-954f9858253f.png',
-    matchPercentage: 0,
-  },
-  {
-    id: '2',
-    name: 'Dhananjay',
-    image: '/lovable-uploads/f38c86bc-1cfd-4b2d-bcf9-954f9858253f.png',
-    matchPercentage: 0,
-  },
-  {
-    id: '3',
-    name: 'Likith',
-    image: '/lovable-uploads/f38c86bc-1cfd-4b2d-bcf9-954f9858253f.png',
-    matchPercentage: 0,
-  },
-  {
-    id: '4',
-    name: 'Micro Mahesh',
-    image: '/lovable-uploads/f38c86bc-1cfd-4b2d-bcf9-954f9858253f.png',
-    matchPercentage: 0,
-  },
-  {
-    id: '5',
-    name: 'Steve',
-    image: '/lovable-uploads/f38c86bc-1cfd-4b2d-bcf9-954f9858253f.png',
-    matchPercentage: 0,
-  },
-];
-
 export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [knownFaces, setKnownFaces] = useState<Person[]>(sampleData);
+  const { toast } = useToast();
+  const [knownFaces, setKnownFaces] = useState<Person[]>([]);
   const [detectedFace, setDetectedFace] = useState<Person | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch known faces from the database
+  const fetchKnownFaces = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('known_faces')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform the data to match our Person type
+      const faces: Person[] = data.map(face => ({
+        id: face.id,
+        name: face.name,
+        image: face.image_path,
+        matchPercentage: 0,
+      }));
+
+      setKnownFaces(faces);
+    } catch (error) {
+      console.error('Error fetching known faces:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load known faces',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchKnownFaces();
+  }, []);
 
   // Simulate face recognition
   useEffect(() => {
-    if (!isRecognizing) {
+    if (!isRecognizing || knownFaces.length === 0) {
       setDetectedFace(null);
       // Reset all match percentages
       setKnownFaces((prev) =>
@@ -94,7 +105,14 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
 
   const startRecognition = () => setIsRecognizing(true);
   const stopRecognition = () => setIsRecognizing(false);
-  const addKnownFace = (face: Person) => setKnownFaces((prev) => [...prev, face]);
+  
+  const addKnownFace = (face: Person) => {
+    setKnownFaces((prev) => [...prev, face]);
+  };
+
+  const refreshKnownFaces = async () => {
+    await fetchKnownFaces();
+  };
 
   return (
     <FaceRecognitionContext.Provider
@@ -105,6 +123,8 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
         startRecognition,
         stopRecognition,
         addKnownFace,
+        refreshKnownFaces,
+        isLoading,
       }}
     >
       {children}
