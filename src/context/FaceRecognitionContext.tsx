@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Person } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,8 +8,11 @@ type FaceRecognitionContextType = {
   knownFaces: Person[];
   detectedFace: Person | null;
   isRecognizing: boolean;
+  isLocked: boolean;
   startRecognition: () => void;
   stopRecognition: () => void;
+  lockRecognition: (personId: string) => void;
+  unlockRecognition: () => void;
   addKnownFace: (face: Person) => void;
   refreshKnownFaces: () => Promise<void>;
   isLoading: boolean;
@@ -24,6 +26,8 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
   const [detectedFace, setDetectedFace] = useState<Person | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockedPersonId, setLockedPersonId] = useState<string | null>(null);
 
   // Fetch known faces from the database
   const fetchKnownFaces = async () => {
@@ -67,12 +71,18 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
   // Simulate face recognition
   useEffect(() => {
     if (!isRecognizing || knownFaces.length === 0) {
-      setDetectedFace(null);
-      // Reset all match percentages
-      setKnownFaces((prev) =>
-        prev.map((face) => ({ ...face, matchPercentage: 0 }))
-      );
+      if (!isLocked) {
+        setDetectedFace(null);
+        // Reset all match percentages
+        setKnownFaces((prev) =>
+          prev.map((face) => ({ ...face, matchPercentage: 0 }))
+        );
+      }
       return;
+    }
+
+    if (isLocked) {
+      return; // Don't update recognition if locked
     }
 
     const recognitionInterval = setInterval(() => {
@@ -101,10 +111,41 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
     }, 3000);
 
     return () => clearInterval(recognitionInterval);
-  }, [isRecognizing, knownFaces]);
+  }, [isRecognizing, knownFaces, isLocked]);
 
-  const startRecognition = () => setIsRecognizing(true);
-  const stopRecognition = () => setIsRecognizing(false);
+  const startRecognition = () => {
+    setIsLocked(false);
+    setLockedPersonId(null);
+    setIsRecognizing(true);
+  };
+
+  const stopRecognition = () => {
+    setIsLocked(false);
+    setLockedPersonId(null);
+    setIsRecognizing(false);
+  };
+  
+  const lockRecognition = (personId: string) => {
+    setIsLocked(true);
+    setLockedPersonId(personId);
+    // Update the knownFaces to show only the confirmed person with 100%
+    setKnownFaces((prev) =>
+      prev.map((face) => ({
+        ...face,
+        matchPercentage: face.id === personId ? 100 : 0,
+      }))
+    );
+    // Update detected face
+    const confirmedFace = knownFaces.find((face) => face.id === personId);
+    if (confirmedFace) {
+      setDetectedFace({ ...confirmedFace, matchPercentage: 100 });
+    }
+  };
+
+  const unlockRecognition = () => {
+    setIsLocked(false);
+    setLockedPersonId(null);
+  };
   
   const addKnownFace = (face: Person) => {
     setKnownFaces((prev) => [...prev, face]);
@@ -120,8 +161,11 @@ export const FaceRecognitionProvider: React.FC<{ children: React.ReactNode }> = 
         knownFaces,
         detectedFace,
         isRecognizing,
+        isLocked,
         startRecognition,
         stopRecognition,
+        lockRecognition,
+        unlockRecognition,
         addKnownFace,
         refreshKnownFaces,
         isLoading,

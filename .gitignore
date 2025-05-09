@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -22,3 +23,62 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ML/PyTorch specific
+*.pt
+*.pth
+*.onnx
+*.h5
+model_weights/
+*.lib
+*.dll
+
+# Database
+*.db
+*.sqlite3
+
+# Coverage and testing
+.coverage
+htmlcov/
+.pytest_cache/
+coverage/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Local media files
+uploads/
+media/
+*.jpg
+*.jpeg
+*.png
+*.gif

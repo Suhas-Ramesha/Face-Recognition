@@ -1,13 +1,34 @@
-
 import { useFaceRecognition } from "@/context/FaceRecognitionContext";
-import { Users } from "lucide-react";
+import { Users, Check, X } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 const KnownFaces = () => {
-  const { knownFaces, detectedFace, isLoading } = useFaceRecognition();
+  const { knownFaces, detectedFace, isLoading, lockRecognition, unlockRecognition, isLocked } = useFaceRecognition();
+  const { toast } = useToast();
   
   // Sort faces by match percentage (higher first)
   const sortedFaces = [...knownFaces].sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+  const handleConfirm = (personId: string) => {
+    lockRecognition(personId);
+    toast({
+      title: "Recognition Confirmed",
+      description: "Face successfully recognized and locked!",
+      variant: "default",
+    });
+  };
+
+  const handleReject = () => {
+    unlockRecognition();
+    toast({
+      title: "Recognition Rejected",
+      description: "Recognition has been reset. Please try again.",
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm p-5">
@@ -54,6 +75,26 @@ const KnownFaces = () => {
                   ></div>
                 </div>
               </div>
+              {person.id === detectedFace?.id && !isLocked && (
+                <div className="flex items-center gap-2 ml-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-green-600 border-green-600 hover:bg-green-50"
+                    onClick={() => handleConfirm(person.id)}
+                  >
+                    <Check size={16} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={handleReject}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>
