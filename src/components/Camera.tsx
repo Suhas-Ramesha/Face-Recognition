@@ -1,12 +1,14 @@
-
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useFaceRecognition } from "@/context/FaceRecognitionContext";
 import { Camera, CameraOff } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 const CameraComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { isRecognizing, detectedFace } = useFaceRecognition();
+  const [lastLightingWarning, setLastLightingWarning] = useState(0);
+  const [lastRecognitionWarning, setLastRecognitionWarning] = useState(0);
   
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -74,6 +76,69 @@ const CameraComponent = () => {
       }
     }
   }, [isRecognizing, detectedFace]);
+
+  // Lighting detection
+  useEffect(() => {
+    let lightingInterval: NodeJS.Timeout;
+    function checkLighting() {
+      const video = videoRef.current;
+      if (!video) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let brightness = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        brightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+      }
+      brightness /= (data.length / 4);
+      const now = Date.now();
+      if (brightness < 50 && now - lastLightingWarning > 5000) {
+        toast({
+          title: "Lighting Warning",
+          description: "Lighting is too low. Please improve lighting for better recognition.",
+          variant: "destructive",
+        });
+        setLastLightingWarning(now);
+      } else if (brightness > 200 && now - lastLightingWarning > 5000) {
+        toast({
+          title: "Lighting Warning",
+          description: "Lighting is too bright. Please reduce lighting for better recognition.",
+          variant: "destructive",
+        });
+        setLastLightingWarning(now);
+      }
+    }
+    if (isRecognizing) {
+      lightingInterval = setInterval(checkLighting, 2000);
+    }
+    return () => {
+      if (lightingInterval) clearInterval(lightingInterval);
+    };
+  }, [isRecognizing, lastLightingWarning]);
+
+  // Unrecognized user warning
+  useEffect(() => {
+    if (!isRecognizing) return;
+    const now = Date.now();
+    if (
+      detectedFace &&
+      detectedFace.matchPercentage < 80 &&
+      now - lastRecognitionWarning > 5000
+    ) {
+      toast({
+        title: "User Not Recognized",
+        description:
+          "User not recognized. Please try again with better lighting or adjust your position.",
+        variant: "destructive",
+      });
+      setLastRecognitionWarning(now);
+    }
+  }, [isRecognizing, detectedFace, lastRecognitionWarning]);
 
   return (
     <div className="relative h-full w-full rounded-lg overflow-hidden bg-gray-100">
