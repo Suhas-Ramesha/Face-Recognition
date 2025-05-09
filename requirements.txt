@@ -1,5 +1,6 @@
+--find-links https://download.pytorch.org/whl/cpu
 transformers==4.37.2
-torch==2.1.0
+torch==2.5.1+cpu
 Pillow==10.2.0
 fastapi==0.109.2
 uvicorn==0.27.1
