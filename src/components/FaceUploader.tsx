@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useFaceRecognition } from "@/context/FaceRecognitionContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addKnownFace, getRegisteredPeople } from "@/lib/faceRecognition.ts";
+import { addKnownFace, getRegisteredPeople } from "@/lib/faceRecognition";
 
 const FaceUploader = () => {
   const { toast } = useToast();
