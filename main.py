@@ -10,7 +10,10 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
+    allow_origins=[
+        "http://localhost:5173",  # Local development
+        "https://facerec319.netlify.app",  # Replace with your actual Netlify domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,10 +58,6 @@ async def add_known_face(
 async def get_people():
     """Get list of all registered people."""
     return await face_recognition_service.get_all_people()
-
-@app.get("/api/cors-test")
-async def cors_test():
-    return {"message": "CORS is working"}
 
 if __name__ == "__main__":
     import uvicorn

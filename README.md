@@ -1,73 +1,47 @@
-# Welcome to your Lovable project
+# Face Recognition Backend
 
-## Project info
+This is the Python backend service for face recognition using the Hugging Face model.
 
-**URL**: https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7
+## Setup
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```bash
+pip install -r ../requirements.txt
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Create a `.env` file with your Supabase credentials:
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
 
-**Use GitHub Codespaces**
+4. Run the server:
+```bash
+python main.py
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The server will start on http://localhost:8000
 
-## What technologies are used for this project?
+## API Endpoints
 
-This project is built with:
+- POST `/api/recognize`: Recognize a face in an uploaded image
+- POST `/api/add-known-face`: Add a known face to the database
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Database Schema
 
-## How can I deploy this project?
+Create the following table in your Supabase database:
 
-Simply open [Lovable](https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```sql
+create table face_embeddings (
+  id uuid default uuid_generate_v4() primary key,
+  person_id text not null,
+  embedding float[] not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+``` 
