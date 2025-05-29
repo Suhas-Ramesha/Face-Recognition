@@ -1,73 +1,122 @@
-# Welcome to your Lovable project
+# 🧠 Face Recognition System
 
-## Project info
+## Problem Statement  
+In a world increasingly driven by automation and digital access, secure and contactless identification has become a necessity. Traditional methods of authentication like passwords and ID cards are prone to misuse and inefficiency.
 
-**URL**: https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7
+Facial recognition technology offers a powerful alternative by leveraging unique facial features for identity verification. Our project solves this by delivering a **real-time, AI-powered face recognition system** that is scalable, secure, and easy to integrate into modern web or mobile applications.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🔗 Demo  
+[Live Demo](https://your-live-demo-link.com) *(Replace with actual link)*
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7) and start prompting.
+## 💡 Solution  
+This project delivers a full-stack application that:  
+✅ Detects and recognizes faces in real-time using AI models  
+✅ Enables secure login, attendance, and access control workflows  
+✅ Stores and compares facial embeddings using Supabase  
+✅ Features a clean and interactive frontend for seamless user experience
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## 🔥 Features  
+📸 Face Enrollment with image upload  
+🔍 Face Recognition with confidence scores  
+🧠 AI-based Embedding Extraction (Hugging Face & PyTorch)  
+🗃️ Supabase Database for scalable backend storage  
+🌐 REST API via FastAPI for backend communication  
+💻 React + Tailwind CSS frontend  
+🚀 Dockerized and deployed via Render & Netlify
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## ⚙️ Installation & Setup
 
-Follow these steps:
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/your-username/face-recognition-system.git
+cd face-recognition-system
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 2️⃣ Backend Setup
+Make sure you have Python 3.9 installed:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+Copy
+Edit
+cd backend
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+Create a .env file for Supabase credentials:
+```Copy
+Edit
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_anon_key
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3️⃣ Run Backend Server
+```bash
+Copy
+Edit
+uvicorn main:app --reload
+```
+
+### 4️⃣ Frontend Setup
+```bash
+Copy
+Edit
+cd frontend
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🐳 Deployment
+Backend (Render)
+Dockerized FastAPI backend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Deploy to Render:-
 
-**Use GitHub Codespaces**
+Frontend (Netlify)
+React + Vite frontend
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Deploy to Netlify
 
-## What technologies are used for this project?
+## 🗃️ Example API Endpoints
+POST /api/add-known-face → Register a new face
 
-This project is built with:
+POST /api/recognize → Identify face from uploaded image
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📂 Example Data Format
+```json
+Copy
+Edit
+{
+  "image": "base64-encoded-image"
+}
+```
 
-## How can I deploy this project?
+For embedding storage:
 
-Simply open [Lovable](https://lovable.dev/projects/af824f65-4377-4c42-83cb-b19b06f0dbd7) and click on Share -> Publish.
+```json
+Copy
+Edit
+{
+  "person_id": "john_doe",
+  "embedding": [0.123, 0.456, ..., 0.789]
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🤝 Contributing
+Feel free to fork the repo, create a new branch, and submit a Pull Request! Contributions are welcome.
 
-Yes it is!
+## 📬 Contact
+For questions or collaboration, contact:
+📧 your.email@example.com
+🔗 GitHub: Suhas-Ramesha
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🚀 Enhancing Security, One Face at a Time!
