@@ -8,7 +8,7 @@ Facial recognition technology offers a powerful alternative by leveraging unique
 ---
 
 ## 🔗 Demo  
-[Live Demo](face-recognition-psi-tan.vercel.app) 
+[Live Demo](https://face-recognition-psi-tan.vercel.app/)
 
 ---
 
