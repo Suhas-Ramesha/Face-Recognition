@@ -56,6 +56,9 @@ async def get_people():
     """Get list of all registered people."""
     return await face_recognition_service.get_all_people()
 
+# For Vercel deployment
+handler = app
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
