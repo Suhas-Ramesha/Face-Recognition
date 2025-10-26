@@ -12,6 +12,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://face-recognition-psi-tan.vercel.app",
+        "https://face-recognition-git-main-suhas-projects-49474e5e.vercel.app",
         "http://localhost:3000",
         "http://localhost:5173"
     ],
