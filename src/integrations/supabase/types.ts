@@ -20,18 +20,21 @@ export type Database = {
           embedding: Json
           id: string
           person_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           embedding: Json
           id?: string
           person_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           embedding?: Json
           id?: string
           person_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -41,18 +44,21 @@ export type Database = {
           id: string
           image_path: string
           name: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           image_path: string
           name: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           image_path?: string
           name?: string
+          user_id?: string | null
         }
         Relationships: []
       }
