@@ -31,7 +31,7 @@ const Index = () => {
           </div>
 
           {/* CTA */}
-          <div className="pt-6">
+          <div className="pt-6 flex gap-4 justify-center">
             <Button 
               size="lg" 
               onClick={() => navigate("/app")}
@@ -39,6 +39,14 @@ const Index = () => {
             >
               Open App
               <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate("/auth")}
+              className="text-lg px-8 py-6 border-slate-700 hover:bg-slate-800"
+            >
+              Sign In
             </Button>
           </div>
 
