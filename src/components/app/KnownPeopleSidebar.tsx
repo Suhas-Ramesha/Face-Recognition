@@ -15,6 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import MagicBento from "@/components/ui/magic-bento";
 
 interface KnownFace {
   id: string;
@@ -76,7 +77,20 @@ export const KnownPeopleSidebar = () => {
 
   return (
     <>
-      <div className="h-full flex flex-col bg-card">
+      <MagicBento
+        textAutoHide={true}
+        enableStars={true}
+        enableSpotlight={true}
+        enableBorderGlow={true}
+        enableTilt={true}
+        enableMagnetism={true}
+        clickEffect={true}
+        spotlightRadius={300}
+        particleCount={12}
+        glowColor="132, 0, 255"
+        className="h-full"
+      >
+        <div className="h-full flex flex-col bg-card">
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
@@ -135,7 +149,8 @@ export const KnownPeopleSidebar = () => {
             )}
           </div>
         </ScrollArea>
-      </div>
+        </div>
+      </MagicBento>
 
       {/* Person Details Drawer */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
@@ -149,14 +164,27 @@ export const KnownPeopleSidebar = () => {
           <ScrollArea className="h-[calc(100vh-120px)] mt-6">
             <div className="grid grid-cols-2 gap-3">
               {selectedPerson?.images.map((image) => (
-                <div key={image.id} className="relative group">
+                <MagicBento
+                  key={image.id}
+                  textAutoHide={true}
+                  enableStars={true}
+                  enableSpotlight={true}
+                  enableBorderGlow={true}
+                  enableTilt={true}
+                  enableMagnetism={true}
+                  clickEffect={true}
+                  spotlightRadius={300}
+                  particleCount={12}
+                  glowColor="132, 0, 255"
+                  className="relative group rounded-lg overflow-hidden"
+                >
                   <img
                     src={image.image_path}
                     alt={image.name}
                     className="w-full aspect-square object-cover rounded-lg"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg" />
-                </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg pointer-events-none" />
+                </MagicBento>
               ))}
             </div>
           </ScrollArea>

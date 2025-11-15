@@ -128,7 +128,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 mb-4" />
+          <img src="/logo.png" alt="Face Recognition Logo" className="mx-auto w-16 h-16 object-contain mb-4" />
           <CardTitle className="text-2xl">Face Recognition</CardTitle>
           <CardDescription>Sign in to manage your face recognition system</CardDescription>
         </CardHeader>

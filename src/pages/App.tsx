@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/ui/footer";
+import StaggeredMenu from "@/components/ui/staggered-menu";
 
 const AppPage = () => {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -16,6 +18,17 @@ const AppPage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const menuItems = [
+    { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
+    { label: 'Recognition', ariaLabel: 'Go to recognition page', link: '/app' },
+    { label: 'More Info', ariaLabel: 'Scroll to footer', link: '#footer' }
+  ];
+
+  const socialItems = [
+    { label: 'GitHub', link: 'https://github.com/Suhas-Ramesha' },
+    { label: 'LinkedIn', link: 'https://www.linkedin.com/in/suhas-ramesha/' }
+  ];
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -77,11 +90,26 @@ const AppPage = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <StaggeredMenu
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#fff"
+        openMenuButtonColor="#fff"
+        changeMenuColorOnOpen={true}
+        colors={['#B19EEF', '#5227FF']}
+        logoUrl="/logo.png"
+        accentColor="#7cff67"
+        onMenuOpen={() => console.log('Menu opened')}
+        onMenuClose={() => console.log('Menu closed')}
+      />
       {/* Header */}
-      <header className="h-14 border-b flex items-center justify-between px-4 bg-card">
+      <header className="h-14 border-b flex items-center justify-between px-4 bg-card relative z-10 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600" />
+          <img src="/logo.png" alt="Face Recognition Logo" className="w-8 h-8 object-contain" />
           <h1 className="text-lg font-semibold">Face Recognition — Personal Project</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -95,7 +123,7 @@ const AppPage = () => {
       </header>
 
       {/* Main Content - Three Column Layout */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Left: Known People Sidebar */}
           <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
@@ -117,6 +145,7 @@ const AppPage = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+      <Footer />
     </div>
   );
 };

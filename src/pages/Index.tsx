@@ -1,18 +1,69 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Shield, Zap, Database } from "lucide-react";
+import Aurora from "@/components/ui/aurora";
+import ClickSpark from "@/components/ui/click-spark";
+import SpotlightCard from "@/components/ui/spotlight-card";
+import Footer from "@/components/ui/footer";
+import StaggeredMenu from "@/components/ui/staggered-menu";
 
 const Index = () => {
   const navigate = useNavigate();
 
+  const menuItems = [
+    { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
+    { label: 'Recognition', ariaLabel: 'Go to recognition page', link: '/app' },
+    { label: 'More Info', ariaLabel: 'Scroll to footer', link: '#footer' }
+  ];
+
+  const socialItems = [
+    { label: 'GitHub', link: 'https://github.com/Suhas-Ramesha' },
+    { label: 'LinkedIn', link: 'https://www.linkedin.com/in/suhas-ramesha/' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen relative bg-slate-950 overflow-hidden">
+      <StaggeredMenu
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#fff"
+        openMenuButtonColor="#fff"
+        changeMenuColorOnOpen={true}
+        colors={['#B19EEF', '#5227FF']}
+        logoUrl="/logo.png"
+        accentColor="#7cff67"
+        onMenuOpen={() => console.log('Menu opened')}
+        onMenuClose={() => console.log('Menu closed')}
+      />
+      {/* Aurora Background */}
+      <div className="absolute inset-0 z-0">
+        <Aurora 
+          colorStops={['#5227FF', '#7cff67', '#5227FF']}
+          amplitude={1.0}
+          blend={0.5}
+        />
+      </div>
+      
+      {/* Content */}
+      <ClickSpark 
+        sparkColor="#7cff67"
+        sparkSize={12}
+        sparkRadius={20}
+        sparkCount={8}
+        duration={400}
+        easing="ease-out"
+        extraScale={1.2}
+      >
+        <div className="relative z-10 min-h-screen">
+          {/* Hero Section */}
+          <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Logo */}
-          <div className="inline-flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600" />
+          <div className="inline-flex items-center gap-4 mb-8">
+            <img src="/logo.png" alt="Face Recognition Logo" className="w-20 h-20 object-contain" />
             <h1 className="text-3xl font-bold text-white">Face Recognition</h1>
           </div>
 
@@ -52,7 +103,10 @@ const Index = () => {
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-6 pt-16">
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 border border-slate-800">
+            <SpotlightCard 
+              spotlightColor="rgba(34, 211, 238, 0.3)"
+              className="bg-slate-900/50 backdrop-blur-sm border-slate-800"
+            >
               <Database className="h-10 w-10 text-cyan-400 mb-4 mx-auto" />
               <h3 className="text-lg font-semibold text-white mb-2">
                 Personal Dataset
@@ -60,9 +114,12 @@ const Index = () => {
               <p className="text-sm text-slate-400">
                 Upload and manage your own face images with full control over your data
               </p>
-            </div>
+            </SpotlightCard>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 border border-slate-800">
+            <SpotlightCard 
+              spotlightColor="rgba(124, 255, 103, 0.3)"
+              className="bg-slate-900/50 backdrop-blur-sm border-slate-800"
+            >
               <Zap className="h-10 w-10 text-purple-400 mb-4 mx-auto" />
               <h3 className="text-lg font-semibold text-white mb-2">
                 Live Recognition
@@ -70,9 +127,12 @@ const Index = () => {
               <p className="text-sm text-slate-400">
                 Real-time face detection with confidence scores and match history
               </p>
-            </div>
+            </SpotlightCard>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-6 border border-slate-800">
+            <SpotlightCard 
+              spotlightColor="rgba(59, 130, 246, 0.3)"
+              className="bg-slate-900/50 backdrop-blur-sm border-slate-800"
+            >
               <Shield className="h-10 w-10 text-blue-400 mb-4 mx-auto" />
               <h3 className="text-lg font-semibold text-white mb-2">
                 Privacy First
@@ -80,12 +140,15 @@ const Index = () => {
               <p className="text-sm text-slate-400">
                 All data stored securely in your own Supabase instance
               </p>
-            </div>
+            </SpotlightCard>
           </div>
 
           {/* Privacy Note */}
           <div className="pt-12 max-w-2xl mx-auto">
-            <div className="bg-slate-900/30 backdrop-blur-sm rounded-lg p-6 border border-slate-800">
+            <SpotlightCard 
+              spotlightColor="rgba(124, 255, 103, 0.25)"
+              className="bg-slate-900/30 backdrop-blur-sm border-slate-800"
+            >
               <h3 className="text-sm font-semibold text-cyan-400 mb-3">
                 Privacy & Transparency
               </h3>
@@ -94,10 +157,13 @@ const Index = () => {
                 in your own Supabase database. You have full control and can delete 
                 everything at any time. No pricing, no plans — just learning and exploring.
               </p>
-            </div>
+            </SpotlightCard>
           </div>
         </div>
-      </div>
+        </div>
+        </div>
+      </ClickSpark>
+      <Footer />
     </div>
   );
 };

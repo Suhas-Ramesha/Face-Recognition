@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import MagicBento from "@/components/ui/magic-bento";
 
 interface UploadFile {
   file: File;
@@ -111,58 +112,150 @@ export const UploadManagePanel = () => {
       return;
     }
 
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload images.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
     for (let i = 0; i < uploadFiles.length; i++) {
       const uploadFile = uploadFiles[i];
       
       setUploadFiles(prev => 
         prev.map((f, idx) => 
-          idx === i ? { ...f, status: "uploading" } : f
+          idx === i ? { ...f, status: "uploading", progress: 0 } : f
         )
       );
 
       try {
-        // Simulate progress
-        for (let progress = 0; progress <= 100; progress += 20) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          setUploadFiles(prev => 
-            prev.map((f, idx) => 
-              idx === i ? { ...f, progress } : f
-            )
-          );
+        // Update progress
+        setUploadFiles(prev => 
+          prev.map((f, idx) => 
+            idx === i ? { ...f, progress: 30 } : f
+          )
+        );
+
+        // Upload to Supabase Storage
+        const filePath = `${user.id}/${Date.now()}_${uploadFile.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('faces')
+          .upload(filePath, uploadFile.file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          throw uploadError;
         }
 
-        // TODO: Actual upload to Supabase Storage and database insert
-        // const filePath = `${userId}/${Date.now()}_${uploadFile.file.name}`;
-        // await supabase.storage.from('faces').upload(filePath, uploadFile.file);
-        // await supabase.from('known_faces').insert({ name: personName, image_path: filePath });
+        setUploadFiles(prev => 
+          prev.map((f, idx) => 
+            idx === i ? { ...f, progress: 70 } : f
+          )
+        );
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('faces')
+          .getPublicUrl(filePath);
+
+        const publicUrl = urlData.publicUrl;
+
+        setUploadFiles(prev => 
+          prev.map((f, idx) => 
+            idx === i ? { ...f, progress: 90 } : f
+          )
+        );
+
+        // Insert into database
+        const { error: insertError } = await supabase
+          .from('known_faces')
+          .insert({ 
+            name: personName, 
+            image_path: publicUrl,
+            user_id: user.id
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
 
         setUploadFiles(prev => 
           prev.map((f, idx) => 
             idx === i ? { ...f, status: "success", progress: 100 } : f
           )
         );
+        successCount++;
       } catch (error) {
+        console.error("Upload error:", error);
         setUploadFiles(prev => 
           prev.map((f, idx) => 
-            idx === i ? { ...f, status: "error", error: (error as Error).message } : f
+            idx === i ? { 
+              ...f, 
+              status: "error", 
+              error: (error as Error).message,
+              progress: 0
+            } : f
           )
         );
+        errorCount++;
       }
     }
 
+    // Invalidate queries to refresh the UI
     queryClient.invalidateQueries({ queryKey: ["knownFaces"] });
     queryClient.invalidateQueries({ queryKey: ["existingPeople"] });
     
-    toast({
-      title: "Upload complete",
-      description: `Successfully uploaded ${uploadFiles.length} images for ${personName}.`,
-    });
+    // Show completion toast
+    if (successCount > 0 && errorCount === 0) {
+      toast({
+        title: "Upload complete",
+        description: `Successfully uploaded ${successCount} image(s) for ${personName}.`,
+      });
+    } else if (successCount > 0 && errorCount > 0) {
+      toast({
+        title: "Upload partially complete",
+        description: `Uploaded ${successCount} image(s), ${errorCount} failed.`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Upload failed",
+        description: `Failed to upload ${errorCount} image(s). Please try again.`,
+        variant: "destructive",
+      });
+    }
+
+    // Clear successful uploads after a delay
+    setTimeout(() => {
+      setUploadFiles(prev => prev.filter(f => f.status !== "success"));
+    }, 2000);
   };
 
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-6">
-        <Card>
+        <MagicBento
+          textAutoHide={true}
+          enableStars={true}
+          enableSpotlight={true}
+          enableBorderGlow={true}
+          enableTilt={true}
+          enableMagnetism={true}
+          clickEffect={true}
+          spotlightRadius={300}
+          particleCount={12}
+          glowColor="132, 0, 255"
+        >
+          <Card>
           <CardHeader>
             <CardTitle>Upload & Manage</CardTitle>
             <CardDescription>
@@ -270,6 +363,7 @@ export const UploadManagePanel = () => {
             )}
           </CardContent>
         </Card>
+        </MagicBento>
       </div>
     </ScrollArea>
   );
