@@ -39,7 +39,7 @@ A modern, production-oriented face recognition application that combines a React
 
 High-level flow:
 
-```mermaid
+```
 flowchart TD
   A[Data Acquisition] --> B[Preprocessing & Augmentation]
   B --> C[Embedding Model (PyTorch)]
@@ -54,7 +54,7 @@ flowchart TD
 
 Detailed training pipeline:
 
-```mermaid
+```
 flowchart LR
   Data[Raw Images / Labels / Datasources]
   Data --> Clean[Face Detection & Alignment (MTCNN / dlib)]
