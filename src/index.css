@@ -101,7 +101,7 @@
   }
   
   .face-card {
-    @apply flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/60 transition-all;
+    @apply flex items-center gap-3 p-3 rounded-lg;
   }
   
   .face-card-active {
